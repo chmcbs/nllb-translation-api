@@ -36,10 +36,12 @@ class TranslateRequest(BaseModel):
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Preload the translator before the app starts"""
+    app.state.loaded = False
     print("Loading translator...")
     try:
         app.state.translator = pipeline("translation", model="facebook/nllb-200-distilled-600M")
         print("Translator loaded successfully.")
+        app.state.loaded = True
     except Exception as e:
         print(f"Error loading translator: {e}")
         raise
@@ -67,9 +69,11 @@ def translate(request: TranslateRequest):
 def languages():
     return list(SUPPORTED_LANGUAGES.keys())
 
-@app.get("/health")
-def health():
-    return {"status": "healthy"}
+@app.get("/ready")
+def ready():
+    if getattr(app.state, "loaded", False) and hasattr(app.state, "translator"):
+        return {"status": "ready"}
+    raise HTTPException(status_code=503, detail="Translator not loaded")
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
