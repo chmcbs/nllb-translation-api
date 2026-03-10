@@ -1,0 +1,15 @@
+{
+    "supported_languages": 
+    {
+        "english": "eng_Latn",
+        "korean": "kor_Hang",
+        "chinese_simplified": "zho_Hans",
+        "chinese_traditional": "zho_Hant",
+        "spanish": "spa_Latn",
+        "greek": "ell_Grek"
+    },
+    "translation_model": "facebook/nllb-200-distilled-600M",
+    "min_str_length": 1,
+    "max_str_length": 100,
+    "max_new_tokens": 200
+}
