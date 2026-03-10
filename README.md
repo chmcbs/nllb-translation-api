@@ -1,4 +1,4 @@
-# Fuzzy Translator
+# NLLB Translation API
 
 A simple multi-language translation API using the [Facebook NLLB](https://huggingface.co/facebook/nllb-200-distilled-600M) transformer from HuggingFace, with a [lightweight toxicity classifier](https://huggingface.co/s-nlp/roberta_toxicity_classifier) that screens inappropriate input.
 
@@ -19,14 +19,13 @@ A simple multi-language translation API using the [Facebook NLLB](https://huggin
 
 #### With Docker (recommended)
 
-1. `docker build -t fuzzy_translator .`
-2. `docker run -p 8000:8000 fuzzy_translator`
+1. `docker build -t nllb_translation_api .`
+2. `docker run -p 8000:8000 nllb_translation_api`
 
 #### Without Docker
 
-1. Create a fresh virtual environment (recommended)
-2. `pip install -r requirements.txt`
-3. `uvicorn app:app --reload`
+1. `pip install -r requirements.txt`
+2. `uvicorn app:app --reload`
 
 ## Project Structure
 
@@ -77,9 +76,7 @@ Translates text from source to target language.
 
 ## Testing
 
-**Docker:** `docker run --rm fuzzy_translator pytest tests.py`
-
-**Locally:** `pytest tests.py`
+Run the test suite locally with `pytest tests.py`
 
 ## Design Decisions
 
