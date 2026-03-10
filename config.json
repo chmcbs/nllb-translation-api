@@ -9,6 +9,8 @@
         "greek": "ell_Grek"
     },
     "translation_model": "facebook/nllb-200-distilled-600M",
+    "guardrail_model": "s-nlp/roberta_toxicity_classifier",
+    "guardrail_threshold": 0.8,
     "min_str_length": 1,
     "max_str_length": 100,
     "max_new_tokens": 200

@@ -15,6 +15,8 @@ with open("config.json") as f:
 
 SUPPORTED_LANGUAGES = CONFIG["supported_languages"]
 TRANSLATION_MODEL = CONFIG["translation_model"]
+GUARDRAIL_MODEL = CONFIG["guardrail_model"]
+GUARDRAIL_THRESHOLD = CONFIG["guardrail_threshold"]
 MIN_STR_LENGTH = CONFIG["min_str_length"]
 MAX_STR_LENGTH = CONFIG["max_str_length"]
 MAX_NEW_TOKENS = CONFIG["max_new_tokens"]
@@ -36,15 +38,20 @@ class TranslateRequest(BaseModel):
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Preload the translator before the app starts"""
+    """Preload the translator and classifier before the app starts"""
     app.state.loaded = False
-    print("Loading translator...")
     try:
+        print("Loading translator...")
         app.state.translator = pipeline("translation", model=TRANSLATION_MODEL)
         print("Translator loaded successfully.")
+
+        print("Loading classifier...")
+        app.state.classifier = pipeline("text-classification", model=GUARDRAIL_MODEL)
+        print("Classifier loaded successfully.")
+        
         app.state.loaded = True
     except Exception as e:
-        print(f"Error loading translator: {e}")
+        print(f"Error loading models: {e}")
         raise
     yield
 
@@ -56,14 +63,18 @@ def update_system_metrics(info):
 
 Instrumentator().instrument(app).add(metrics.default()).add(update_system_metrics).expose(app)
 
+def is_inappropriate(text: str) -> bool:
+    result = app.state.classifier(text)
+    return result[0]["label"] == "toxic" and result[0]["score"] > GUARDRAIL_THRESHOLD
+
 def translate_text(text: str, source: str, target: str):
     translation = app.state.translator(text, src_lang=source, tgt_lang=target, max_new_tokens=MAX_NEW_TOKENS)
     return translation[0]["translation_text"]
 
 @app.post("/translate")
 def translate(request: TranslateRequest):
-    if not hasattr(app.state, "translator"):
-        raise HTTPException(status_code=503, detail="Translator not loaded")
+    if is_inappropriate(request.text):
+        raise HTTPException(status_code=422, detail="Inappropriate input detected")
     return {"translation": translate_text(request.text, SUPPORTED_LANGUAGES[request.source], SUPPORTED_LANGUAGES[request.target])}
 
 @app.get("/languages")
@@ -72,9 +83,9 @@ def languages():
 
 @app.get("/ready")
 def ready():
-    if getattr(app.state, "loaded", False) and hasattr(app.state, "translator"):
+    if app.state.loaded:
         return {"status": "ready"}
-    raise HTTPException(status_code=503, detail="Translator not loaded")
+    raise HTTPException(status_code=503, detail="Models not loaded")
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
