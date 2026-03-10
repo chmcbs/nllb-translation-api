@@ -1,6 +1,6 @@
 # NLLB Translation API
 
-A simple multi-language translation API using the [Facebook NLLB](https://huggingface.co/facebook/nllb-200-distilled-600M) transformer from HuggingFace, with a [lightweight toxicity classifier](https://huggingface.co/s-nlp/roberta_toxicity_classifier) that screens inappropriate input.
+A simple multilingual translation API using [Facebook NLLB](https://huggingface.co/facebook/nllb-200-distilled-600M) from HuggingFace, with a lightweight [toxicity classifier](https://huggingface.co/s-nlp/roberta_toxicity_classifier) for screening inappropriate inputs.
 
 **Supported languages:**
 
